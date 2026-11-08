@@ -1,0 +1,1719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ThermSwitch: Lunar Night Bimetallic Radiator Thermal Valve Auditor</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- MathJax v3 Bulletproof Configuration -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #03050a;
+      color: #e2e8f0;
+      overflow-x: hidden;
+    }
+    
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .formula-box {
+      background-color: #050811;
+      padding: 0.85rem;
+      border-radius: 0.5rem;
+      border: 1px solid #1e293b;
+      text-align: center;
+      color: #38bdf8;
+      font-size: 0.95rem;
+      overflow-x: auto;
+      margin-top: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    /* Custom scrollbar for sleek tech look */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #03050a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #38bdf8;
+    }
+
+    .glow-cyan {
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.25);
+    }
+    .glow-rose {
+      box-shadow: 0 0 20px rgba(244, 63, 94, 0.35);
+    }
+    .glow-emerald {
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#03050a]">
+
+  <!-- Top System Header Bar -->
+  <header class="border-b border-gray-800/80 bg-[#060a14]/90 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="p-2 rounded-lg bg-cyan-950/60 border border-cyan-500/40 text-cyan-400">
+          <i data-lucide="shield-alert" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="text-white font-bold tracking-wider text-base sm:text-lg">ThermSwitch</span>
+            <span class="text-[10px] font-mono tracking-widest uppercase px-2 py-0.5 rounded bg-cyan-900/40 border border-cyan-500/30 text-cyan-300">TRL-4 / STTR</span>
+          </div>
+          <p class="text-xs text-gray-400 hidden sm:block">Lunar Night Bimetallic Radiator Thermal Valve Auditor</p>
+        </div>
+      </div>
+
+      <!-- Live Mission Badges -->
+      <div class="flex items-center space-x-2 sm:space-x-4">
+        <div class="flex items-center space-x-2 px-2.5 py-1 rounded-md bg-gray-900/80 border border-gray-800 text-xs font-mono">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+          <span class="text-gray-300">LUNAR DIURNAL CYCLE:</span>
+          <span id="headerEnvState" class="text-cyan-400 font-bold">DESCENT (T = 175 K)</span>
+        </div>
+        <div id="headerAlarmBadge" class="hidden sm:flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-gray-900/80 border border-emerald-500/40 text-emerald-400 text-xs font-mono">
+          <i data-lucide="activity" class="w-3.5 h-3.5"></i>
+          <span id="headerAlarmText">HEALTHY: UNBOUND</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 overflow-x-auto border-t border-gray-800/40">
+      <button id="tabBtnSim" onclick="switchTab('sim')" class="flex items-center space-x-2 px-4 py-2.5 text-xs sm:text-sm font-medium border-b-2 border-cyan-400 text-cyan-300 bg-cyan-950/20 transition-colors whitespace-nowrap">
+        <i data-lucide="gauge" class="w-4 h-4"></i>
+        <span>Telemetry HUD & Simulation</span>
+      </button>
+      <button id="tabBtnPhysics" onclick="switchTab('physics')" class="flex items-center space-x-2 px-4 py-2.5 text-xs sm:text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition-colors whitespace-nowrap">
+        <i data-lucide="microscope" class="w-4 h-4"></i>
+        <span>Governing Physics & Mathematics</span>
+      </button>
+      <button id="tabBtnProposal" onclick="switchTab('proposal')" class="flex items-center space-x-2 px-4 py-2.5 text-xs sm:text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition-colors whitespace-nowrap">
+        <i data-lucide="file-check-2" class="w-4 h-4"></i>
+        <span>$225k NASA SBIR/STTR Proposal</span>
+      </button>
+      <button id="tabBtnARR" onclick="switchTab('arr')" class="flex items-center space-x-2 px-4 py-2.5 text-xs sm:text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition-colors whitespace-nowrap">
+        <i data-lucide="line-chart" class="w-4 h-4"></i>
+        <span>Commercial & Nationwide ARR</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ========================================== -->
+    <!-- TAB 1: LIVE SIMULATION & TELEMETRY HUD -->
+    <!-- ========================================== -->
+    <div id="viewSim" class="space-y-6">
+      
+      <!-- Top Grid: Interactive Canvas & Phase Space Chart -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Physical System Canvas Visualizer -->
+        <div class="lg:col-span-7 bg-[#070b16] rounded-xl border border-gray-800 p-4 flex flex-col justify-between shadow-2xl">
+          <div class="flex items-center justify-between pb-3 border-b border-gray-800/80">
+            <div class="flex items-center space-x-2">
+              <span class="p-1 rounded bg-cyan-950/70 border border-cyan-800/60 text-cyan-400 font-mono text-xs">RAD-LOUVER-04</span>
+              <h2 class="text-sm font-bold text-gray-200 tracking-wide uppercase">Cryo-Louver Bimetallic Stage & Grit Interface</h2>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span id="piezoStatusPill" class="text-[11px] font-mono px-2 py-0.5 rounded bg-gray-900 border border-gray-700 text-gray-400">
+                PIEZO: IDLE (0 kHz)
+              </span>
+            </div>
+          </div>
+
+          <!-- Canvas Container -->
+          <div class="relative w-full h-[320px] bg-[#020408] rounded-lg mt-3 overflow-hidden border border-gray-900 flex items-center justify-center">
+            <canvas id="louverCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+            
+            <!-- Canvas Overlay Overlays -->
+            <div class="absolute bottom-3 left-3 bg-[#060a14]/90 border border-gray-800 backdrop-blur rounded p-2 text-[11px] font-mono space-y-1 text-gray-300">
+              <div class="flex items-center justify-between gap-4">
+                <span class="text-gray-400">Structural Temp ($T$):</span>
+                <span id="canvasTempDisplay" class="text-cyan-400 font-bold">175.0 K</span>
+              </div>
+              <div class="flex items-center justify-between gap-4">
+                <span class="text-gray-400">Cantilever Angle ($\theta$):</span>
+                <span id="canvasAngleDisplay" class="text-amber-300 font-bold">42.5° (Open)</span>
+              </div>
+              <div class="flex items-center justify-between gap-4">
+                <span class="text-gray-400">Thin-Film Force ($F$):</span>
+                <span id="canvasForceDisplay" class="text-rose-400 font-bold">14.2 N</span>
+              </div>
+              <div class="flex items-center justify-between gap-4">
+                <span class="text-gray-400">Habitat Heat Retention:</span>
+                <span id="canvasHeatRetention" class="text-emerald-400 font-bold">54.2%</span>
+              </div>
+            </div>
+
+            <!-- Warning Badge Overlay -->
+            <div id="canvasJamAlert" class="hidden absolute top-4 right-4 bg-rose-950/90 border border-rose-500 text-rose-200 px-3 py-1.5 rounded-lg text-xs font-mono font-bold glow-rose animate-pulse flex items-center space-x-2">
+              <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400"></i>
+              <span>REGOLITH BINDING DETECTED</span>
+            </div>
+          </div>
+
+          <!-- Quick Canvas Legend -->
+          <div class="grid grid-cols-4 gap-2 pt-3 text-[11px] font-mono text-gray-400 text-center border-t border-gray-900 mt-2">
+            <div class="flex items-center justify-center space-x-1.5">
+              <span class="w-2.5 h-2.5 rounded-sm bg-cyan-400"></span>
+              <span>Invar-Brass Strip</span>
+            </div>
+            <div class="flex items-center justify-center space-x-1.5">
+              <span class="w-2.5 h-2.5 rounded-sm bg-amber-500"></span>
+              <span>Regolith Dust Grit</span>
+            </div>
+            <div class="flex items-center justify-center space-x-1.5">
+              <span class="w-2.5 h-2.5 rounded-sm bg-purple-400"></span>
+              <span>Thin-Film PZT</span>
+            </div>
+            <div class="flex items-center justify-center space-x-1.5">
+              <span class="w-2.5 h-2.5 rounded-sm bg-emerald-400"></span>
+              <span>Insulated Stop Seal</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Diagnostic Phase Space Chart (T vs F) -->
+        <div class="lg:col-span-5 bg-[#070b16] rounded-xl border border-gray-800 p-4 flex flex-col justify-between shadow-2xl">
+          <div class="flex items-center justify-between pb-3 border-b border-gray-800/80">
+            <div>
+              <h2 class="text-sm font-bold text-gray-200 tracking-wide uppercase flex items-center space-x-2">
+                <span>Phase-Space Closing Envelope</span>
+                <span class="text-cyan-400 font-mono text-xs">$(T, F)$</span>
+              </h2>
+              <p class="text-[11px] text-gray-400">Temp ($T$, K) vs Strain Reaction Force ($F$, N)</p>
+            </div>
+            <button onclick="clearPhaseTrajectory()" class="text-[11px] font-mono text-gray-400 hover:text-cyan-300 underline">
+              Reset Trace
+            </button>
+          </div>
+
+          <div class="relative w-full h-[280px] mt-2">
+            <canvas id="phaseSpaceChart"></canvas>
+          </div>
+
+          <div class="mt-2 p-2.5 rounded bg-gray-950/60 border border-gray-800/80 text-[11px] font-mono flex items-center justify-between">
+            <span class="text-gray-400">Observer State:</span>
+            <span id="observerDiagnosis" class="text-emerald-400 font-bold">NOMINAL_THERMO_ELASTIC</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls & Real-Time Observer Panel -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+        
+        <!-- Parameter Sliders & Environment Control -->
+        <div class="md:col-span-7 bg-[#070b16] rounded-xl border border-gray-800 p-5 space-y-4">
+          <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+            <h3 class="text-xs font-bold text-gray-300 tracking-wider uppercase font-mono flex items-center space-x-2">
+              <i data-lucide="sliders" class="w-4 h-4 text-cyan-400"></i>
+              <span>Cryogenic Environmental & Grit Injection Controls</span>
+            </h3>
+            <span class="text-xs text-gray-400 font-mono">Lunar South Pole Simulation (Shackleton Rim)</span>
+          </div>
+
+          <!-- Slider 1: Temperature -->
+          <div class="space-y-1.5">
+            <div class="flex justify-between text-xs font-mono">
+              <span class="text-gray-300">Lunar Surface Radiative Sink Temp ($T$):</span>
+              <span id="sliderTempLabel" class="text-cyan-400 font-bold">175 K (-98°C)</span>
+            </div>
+            <input id="sliderTemp" type="range" min="80" max="380" step="1" value="175" class="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-cyan-400">
+            <div class="flex justify-between text-[10px] font-mono text-gray-400">
+              <span>80 K (Deep Lunar Midnight)</span>
+              <span>230 K (Penumbra)</span>
+              <span>380 K (Lunar Noon Peak)</span>
+            </div>
+          </div>
+
+          <!-- Slider 2: Regolith Grit Particle Density -->
+          <div class="space-y-1.5">
+            <div class="flex justify-between text-xs font-mono">
+              <span class="text-gray-300">Sub-20µm Regolith Grit Contamination ($\mu_g$):</span>
+              <span id="sliderGritLabel" class="text-amber-400 font-bold">12 mg/cm² (Nominal Dust)</span>
+            </div>
+            <input id="sliderGrit" type="range" min="0" max="100" step="1" value="12" class="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-amber-400">
+            <div class="flex justify-between text-[10px] font-mono text-gray-400">
+              <span>0 mg/cm² (Pristine)</span>
+              <span>45 mg/cm² (Binding Threshold)</span>
+              <span>100 mg/cm² (Severe Caking)</span>
+            </div>
+          </div>
+
+          <!-- Interactive Action Buttons -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2">
+            <button onclick="injectGritAnomaly()" class="px-3 py-2 rounded-lg bg-amber-950/50 border border-amber-600/60 hover:bg-amber-900/60 text-amber-200 text-xs font-mono font-semibold transition flex flex-col items-center justify-center space-y-1">
+              <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i>
+              <span>Inject Grit Jam</span>
+            </button>
+            <button onclick="triggerPiezoDislodge(false)" class="px-3 py-2 rounded-lg bg-cyan-950/50 border border-cyan-600/60 hover:bg-cyan-900/60 text-cyan-200 text-xs font-mono font-semibold transition flex flex-col items-center justify-center space-y-1">
+              <i data-lucide="zap" class="w-4 h-4 text-cyan-400"></i>
+              <span>Manual Piezo Pulse</span>
+            </button>
+            <button onclick="simulateFullLunarNight()" class="px-3 py-2 rounded-lg bg-purple-950/50 border border-purple-600/60 hover:bg-purple-900/60 text-purple-200 text-xs font-mono font-semibold transition flex flex-col items-center justify-center space-y-1">
+              <i data-lucide="moon" class="w-4 h-4 text-purple-400"></i>
+              <span>Auto 350-hr Plunge</span>
+            </button>
+            <button onclick="resetSystemNominal()" class="px-3 py-2 rounded-lg bg-gray-900 border border-gray-700 hover:bg-gray-800 text-gray-200 text-xs font-mono font-semibold transition flex flex-col items-center justify-center space-y-1">
+              <i data-lucide="rotate-ccw" class="w-4 h-4 text-gray-400"></i>
+              <span>Clear / Reset</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Observer Diagnostics & Autonomous Actuator -->
+        <div class="md:col-span-5 bg-[#070b16] rounded-xl border border-gray-800 p-5 space-y-4 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+              <h3 class="text-xs font-bold text-gray-300 tracking-wider uppercase font-mono flex items-center space-x-2">
+                <i data-lucide="cpu" class="w-4 h-4 text-emerald-400"></i>
+                <span>Autonomous State Auditor</span>
+              </h3>
+              <label class="inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="autoLoopToggle" checked class="sr-only peer">
+                <div class="w-9 h-5 bg-gray-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                <span class="ml-2 text-[10px] font-mono text-gray-400 uppercase">Auto Loop</span>
+              </label>
+            </div>
+
+            <!-- Auditor Mathematical Metrics -->
+            <div class="grid grid-cols-2 gap-2 mt-3 font-mono text-xs">
+              <div class="p-2.5 rounded bg-gray-950 border border-gray-800">
+                <span class="text-gray-400 text-[10px] block">Apparent Stiffness $k_{\text{eff}}$:</span>
+                <span id="valKeff" class="text-cyan-300 font-bold text-sm">1.82 N/mm</span>
+                <span class="text-[9px] text-gray-400 block mt-0.5">Nominal: $1.75 \pm 0.1$</span>
+              </div>
+              <div class="p-2.5 rounded bg-gray-950 border border-gray-800">
+                <span class="text-gray-400 text-[10px] block">Kinematic Error $\Delta \theta_{\text{lag}}$:</span>
+                <span id="valThetaLag" class="text-emerald-400 font-bold text-sm">0.8°</span>
+                <span class="text-[9px] text-gray-400 block mt-0.5">Threshold: $> 6.5°$</span>
+              </div>
+              <div class="p-2.5 rounded bg-gray-950 border border-gray-800">
+                <span class="text-gray-400 text-[10px] block">Binding Force $\Delta F_{\text{bind}}$:</span>
+                <span id="valFbind" class="text-emerald-400 font-bold text-sm">0.2 N</span>
+                <span class="text-[9px] text-gray-400 block mt-0.5">Critical: $> 3.5$ N</span>
+              </div>
+              <div class="p-2.5 rounded bg-gray-950 border border-gray-800">
+                <span class="text-gray-400 text-[10px] block">Thermal Leak Hazard:</span>
+                <span id="valHeatLossRate" class="text-cyan-400 font-bold text-sm">38 W (Safe)</span>
+                <span class="text-[9px] text-gray-400 block mt-0.5">Unclosed Max: 410 W</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic Intervention Bar -->
+          <div class="p-3 rounded-lg bg-gray-950/80 border border-gray-800 space-y-2">
+            <div class="flex justify-between items-center text-xs font-mono">
+              <span class="text-gray-400">Piezo Shaker Output (38.5 kHz):</span>
+              <span id="piezoEnergyBarVal" class="text-gray-300">0% PWM</span>
+            </div>
+            <div class="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
+              <div id="piezoEnergyBar" class="bg-cyan-500 h-full w-0 transition-all duration-300"></div>
+            </div>
+            <p id="auditRecommendation" class="text-[11px] text-gray-400 italic">
+              System running nominal passive hysteretic curve. Continuous heat-trap closure verified.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Secondary Telemetry Plots -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Telemetry 1: Thermal Leakage vs Time -->
+        <div class="bg-[#070b16] rounded-xl border border-gray-800 p-4">
+          <div class="flex justify-between items-center pb-2 border-b border-gray-800/80">
+            <h4 class="text-xs font-bold text-gray-300 uppercase font-mono">Habitat Parasitic Heat Flux ($\dot{Q}_{\text{rad}}$, Watts)</h4>
+            <span class="text-[10px] font-mono text-cyan-400">Thermal Budget &lt; 85 W</span>
+          </div>
+          <div class="h-44 mt-2">
+            <canvas id="heatLossChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Telemetry 2: Piezo Ultrasonic Sweep Energy -->
+        <div class="bg-[#070b16] rounded-xl border border-gray-800 p-4">
+          <div class="flex justify-between items-center pb-2 border-b border-gray-800/80">
+            <h4 class="text-xs font-bold text-gray-300 uppercase font-mono">Piezo Dislodge Acceleration ($g_{\text{rms}}$ vs Target $140g$)</h4>
+            <span class="text-[10px] font-mono text-purple-400">PZT-5H Shear Resonance</span>
+          </div>
+          <div class="h-44 mt-2">
+            <canvas id="piezoGChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- TAB 2: CORE PHYSICS & MATHEMATICAL MODEL   -->
+    <!-- ========================================== -->
+    <div id="viewPhysics" class="hidden space-y-6">
+      <div class="border-b border-gray-800 pb-3">
+        <h2 class="text-lg font-bold text-white tracking-wide flex items-center space-x-2">
+          <i data-lucide="atom" class="w-5 h-5 text-cyan-400"></i>
+          <span>Multi-Physics Coupling: Cryo-Thermoelasticity, Lunar Tribology & Piezoacoustics</span>
+        </h2>
+        <p class="text-xs text-gray-400 mt-1">
+          Exact mathematical formulation governing the ThermSwitch passive actuator, regolith jamming friction, and thin-film piezo-electric acoustic clearance.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- Physics Card 1: Bimetallic Cantilever Mechanics -->
+        <div class="bg-[#070b16] rounded-xl border border-gray-800 p-5 space-y-3">
+          <div class="flex items-center space-x-2 text-cyan-400">
+            <i data-lucide="compass" class="w-4 h-4"></i>
+            <h3 class="text-sm font-bold uppercase tracking-wider font-mono">1. Timoshenko Cryogenic Bimetallic Curvature</h3>
+          </div>
+          <p class="text-xs text-gray-300 leading-relaxed">
+            The mechanical actuation driving each radiator louver blade stems from the differential thermal contraction between high-expansion brass ($\alpha_1 \approx 19.8 \times 10^{-6}\text{ K}^{-1}$) and low-expansion Invar-36 ($\alpha_2 \approx 1.2 \times 10^{-6}\text{ K}^{-1}$). As temperatures plunge from lunar noon ($380\text{ K}$) to lunar midnight ($80\text{ K}$), the induced radius of curvature $\rho(T)$ is governed by Timoshenko bimetal beam mechanics:
+          </p>
+
+          <div class="formula-box">
+            $$\kappa(T) = \frac{1}{\rho(T)} = \frac{6(\alpha_1 - \alpha_2)(T_0 - T)(1+m)^2}{h \left[3(1+m)^2 + (1+mn)\left(m^2 + \frac{1}{mn}\right)\right]}$$
+          </div>
+
+          <p class="text-xs text-gray-400 leading-relaxed">
+            Where $m = t_1 / t_2$ is the thickness ratio of the laminate layers, $n = E_1 / E_2$ is the Young’s modulus ratio, $h = t_1 + t_2$ is the composite strip thickness, and $T_0$ is the unconstrained neutral calibration temperature ($310\text{ K}$). The resultant free angular blade deflection $\theta(T)$ and ideal blocking closing force $F_{\text{ideal}}(T)$ are directly coupled:
+          </p>
+
+          <div class="formula-box">
+            $$\theta(T) = \kappa(T) \cdot L_b, \qquad F_{\text{block}}(T) = \frac{3 E_{\text{eq}} I_{\text{eq}}}{2 L_b^2} \cdot (\alpha_1 - \alpha_2)(T_0 - T)$$
+          </div>
+        </div>
+
+        <!-- Physics Card 2: Lunar Dust Jamming & Tribology -->
+        <div class="bg-[#070b16] rounded-xl border border-gray-800 p-5 space-y-3">
+          <div class="flex items-center space-x-2 text-amber-400">
+            <i data-lucide="layers" class="w-4 h-4"></i>
+            <h3 class="text-sm font-bold uppercase tracking-wider font-mono">2. Sub-20µm Regolith Particle Interlocking</h3>
+          </div>
+          <p class="text-xs text-gray-300 leading-relaxed">
+            Lunar regolith grit consists of jagged, sub-micron to $20\,\mu\text{m}$ anorthositic/basaltic silicates with sharp aspect ratios, unweathered by atmospheric erosion. When dust infiltrates the louver pivot bearings and perimeter sealing stops, it forms localized force chains governed by Coulomb-Hertz friction with mechanical wedge interlocking:
+          </p>
+
+          <div class="formula-box">
+            $$F_{\text{friction}}(\theta) = \sum_{i=1}^{N_p} \left[ \mu_{\text{vac}} \cdot P_i^{2/3} \left(\frac{16 R_i E^*}{9}\right)^{1/3} + \tau_{\text{shear}} \cdot A_{i,\text{contact}} \cdot \cot(\beta_i) \right]$$
+          </div>
+
+          <p class="text-xs text-gray-400 leading-relaxed">
+            In hard vacuum ($10^{-12}\text{ torr}$), adhesive surface energy $\gamma_{\text{ad}}$ elevates the effective friction coefficient from $\mu \approx 0.3$ up to $\mu_{\text{vac}} > 1.8$. If the dust grit density exceeds $\mu_{\text{grit}} \ge 45\text{ mg/cm}^2$, the force required to seat the louver seal exceeds the bimetal strip's closing force budget:
+          </p>
+
+          <div class="formula-box">
+            $$F_{\text{net}}(\theta, T) = F_{\text{bimetal}}(T) - F_{\text{seal\_spring}}(\theta) - F_{\text{friction}}(\theta, \mu_{\text{grit}}) \le 0$$
+          </div>
+        </div>
+
+        <!-- Physics Card 3: Inverse State Observer Formulation -->
+        <div class="bg-[#070b16] rounded-xl border border-gray-800 p-5 space-y-3">
+          <div class="flex items-center space-x-2 text-emerald-400">
+            <i data-lucide="git-merge" class="w-4 h-4"></i>
+            <h3 class="text-sm font-bold uppercase tracking-wider font-mono">3. Diagnostic State Observer & Jamming Detector</h3>
+          </div>
+          <p class="text-xs text-gray-300 leading-relaxed">
+            ThermSwitch does not require fragile optical encoders. Instead, thin-film strain gauges sputtered directly onto the bimetallic flexure capture the true reaction bending moment $M(t)$ simultaneously with platinum RTDs measuring strip temperature $T(t)$. The real-time algorithm continuously evaluates the dynamic tangent stiffness:
+          </p>
+
+          <div class="formula-box">
+            $$k_{\text{obs}}(t) = \frac{\partial F_{\text{strain}}}{\partial T} \cdot \left(\frac{\partial \theta_{\text{model}}}{\partial T}\right)^{-1}$$
+          </div>
+
+          <p class="text-xs text-gray-400 leading-relaxed">
+            Under nominal closing, $F_{\text{strain}}$ follows the parabolic free-contraction path until reaching the compliant aerogel perimeter seal at $T = 110\text{ K}$. However, when grit binds the hinge, angular motion plateaus ($\dot{\theta} \approx 0$) while bimetallic thermal stress piles up, creating a steep divergence in $\partial F / \partial T$:
+          </p>
+
+          <div class="formula-box">
+            $$\text{Jamming Metric } \Lambda(t) = \int_{t-\Delta t}^t \left[ \frac{\mathrm{d}F(t)}{\mathrm{d}T} - \left.\frac{\partial F}{\partial T}\right|_{\text{nominal}} \right] \mathrm{d}t > \Lambda_{\text{crit}} \implies \text{TRIGGER PIEZO}$$
+          </div>
+        </div>
+
+        <!-- Physics Card 4: Ultrasonic Piezo Dislodgement -->
+        <div class="bg-[#070b16] rounded-xl border border-gray-800 p-5 space-y-3">
+          <div class="flex items-center space-x-2 text-purple-400">
+            <i data-lucide="zap" class="w-4 h-4"></i>
+            <h3 class="text-sm font-bold uppercase tracking-wider font-mono">4. High-Frequency Piezo-Acoustic Fluidization</h3>
+          </div>
+          <p class="text-xs text-gray-300 leading-relaxed">
+            Upon detection of grit binding, localized PZT-5H shear transducers mounted at the louver hinge knuckle excite high-frequency acoustic standing waves. The acoustic shear acceleration $a_{\text{piezo}} = \omega^2 u_0 \sin(\omega t)$ fluidizes the abrasive regolith contact chains:
+          </p>
+
+          <div class="formula-box">
+            $$a_{\text{piezo}} = (2\pi \cdot 38.5\text{ kHz})^2 \cdot (2.4\,\mu\text{m}) \approx 142,500\text{ m/s}^2 \approx 14,500\,g_{\text{peak}}$$
+          </div>
+
+          <p class="text-xs text-gray-400 leading-relaxed">
+            This enormous localized acceleration breaks intermolecular London-van der Waals adhesive bonds ($F_{\text{adh}} \sim 10^{-8}\text{ N}$) and micro-welds between sharp silica edges and metal surfaces, allowing the residual bimetallic torque $\tau_{\text{bi}}(T)$ to immediately snap the thermal valve fully shut:
+          </p>
+
+          <div class="formula-box">
+            $$F_{\text{inertial}} = m_{\text{dust}} \cdot a_{\text{piezo}} \gg F_{\text{vdW}} + \tau_{\text{shear}} A_{\text{contact}}$$
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- TAB 3: $225,000 NASA SBIR/STTR PROPOSAL    -->
+    <!-- ========================================== -->
+    <div id="viewProposal" class="hidden space-y-6">
+      
+      <!-- Solicitation Banner -->
+      <div class="bg-gradient-to-r from-blue-950/70 via-gray-900 to-cyan-950/70 rounded-xl border border-cyan-500/30 p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center space-x-2 text-cyan-400 text-xs font-mono uppercase tracking-widest">
+            <i data-lucide="award" class="w-4 h-4"></i>
+            <span>NASA SBIR/STTR Solicitations • Subtopic H8.01 / TX04</span>
+          </div>
+          <h2 class="text-xl font-bold text-white mt-1">Extreme Environment Passive Thermal Radiators for Lunar Surface Assets</h2>
+          <p class="text-xs text-gray-300 mt-1 max-w-2xl">
+            Project ThermSwitch: Autonomous Grit-Auditing & Piezo-Fluidizing Passive Thermal Louver Architecture for Artemis South Pole Habitation & Pressurized Rovers.
+          </p>
+        </div>
+        <div class="text-right flex-shrink-0">
+          <div class="text-2xl font-bold text-cyan-300 font-mono">$225,000</div>
+          <div class="text-[10px] font-mono text-gray-400 uppercase tracking-wider">Phase I Firm-Fixed Price (6 Mo.)</div>
+        </div>
+      </div>
+
+      <!-- University Partner Callout (STTR Focus) -->
+      <div class="bg-[#070b16] rounded-xl border border-gray-800 p-5 space-y-3">
+        <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+          <div class="flex items-center space-x-3">
+            <div class="p-2 rounded bg-amber-950/60 border border-amber-600/50 text-amber-300 font-mono font-bold text-sm">
+              UCF
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white">University Research Partner: University of Central Florida (UCF)</h3>
+              <p class="text-xs text-gray-400">Center for Advanced Turbomachinery and Energy Research (CATER) & Lunar Exolith Laboratory</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="text-sm font-mono font-bold text-amber-400">$67,500</span>
+            <span class="text-[10px] text-gray-400 block font-mono">30.0% STTR Allocation</span>
+          </div>
+        </div>
+        <p class="text-xs text-gray-300 leading-relaxed">
+          UCF CATER will utilize their ultra-high vacuum cryogenic chambers ($10^{-9}\text{ torr}$, $40\text{ K}$ liquid helium cold shrouds) alongside Lunar Highland Simulant (LHS-1) to experimentally map the exact $(T, F)$ hysteretic closing curves and validate the ultrasonic acoustic fluidization resonance modes for full-scale Artemis louver assemblies.
+        </p>
+      </div>
+
+      <!-- 6-Month Phase I Milestone Roadmap -->
+      <div class="bg-[#070b16] rounded-xl border border-gray-800 p-5 space-y-4">
+        <h3 class="text-xs font-bold text-gray-300 uppercase font-mono tracking-wider flex items-center space-x-2">
+          <i data-lucide="calendar" class="w-4 h-4 text-cyan-400"></i>
+          <span>Phase I Work Breakdown & Verification Gates (Months 1 - 6)</span>
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          
+          <div class="p-4 rounded-lg bg-gray-950 border border-gray-800 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-mono text-cyan-400 font-bold px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-800">M1 - M2</span>
+              <span class="text-xs font-mono text-gray-400">$45,000</span>
+            </div>
+            <h4 class="text-xs font-bold text-white">Thermo-Elastic & Grit Model</h4>
+            <p class="text-[11px] text-gray-400">
+              Coupled FEA modeling of Timoshenko bimetal strip flexures under $80\text{ K}$ cryogenic gradients; Hertzian contact modeling of LHS-1 simulant binding kinematics.
+            </p>
+          </div>
+
+          <div class="p-4 rounded-lg bg-gray-950 border border-gray-800 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-mono text-cyan-400 font-bold px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-800">M3 - M4</span>
+              <span class="text-xs font-mono text-gray-400">$60,000</span>
+            </div>
+            <h4 class="text-xs font-bold text-white">Observer Algorithm & Micro-Sensors</h4>
+            <p class="text-[11px] text-gray-400">
+              Formulation of the inverse stiffness state observer; thin-film strain gauge sputtering onto cryogenic Invar-Brass test coupons; baseline latency &lt; 20 ms.
+            </p>
+          </div>
+
+          <div class="p-4 rounded-lg bg-gray-950 border border-gray-800 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-mono text-cyan-400 font-bold px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-800">M5</span>
+              <span class="text-xs font-mono text-gray-400">$65,000</span>
+            </div>
+            <h4 class="text-xs font-bold text-white">Cryo-Vacuum Chamber Testing</h4>
+            <p class="text-[11px] text-gray-400">
+              Execution of 12 full cryogenic plunge cycles at UCF CATER facilities with LHS-1 dust dusting; demonstration of autonomous grit dislodgement &gt; 98.5% recovery.
+            </p>
+          </div>
+
+          <div class="p-4 rounded-lg bg-gray-950 border border-gray-800 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-mono text-cyan-400 font-bold px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-800">M6</span>
+              <span class="text-xs font-mono text-gray-400">$55,000</span>
+            </div>
+            <h4 class="text-xs font-bold text-white">Phase II Architecture & TRL-5 Pack</h4>
+            <p class="text-[11px] text-gray-400">
+              Delivery of final Phase I engineering design package; space-qualified FPGA auditor firmware; flight qualification plan for Artemis Foundation Habitation.
+            </p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Phase II Transition Plan -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-[#070b16] rounded-xl border border-gray-800 p-4 space-y-2">
+          <h4 class="text-xs font-bold text-white uppercase font-mono flex items-center space-x-2">
+            <i data-lucide="rocket" class="w-4 h-4 text-cyan-400"></i>
+            <span>Phase II Flight Infusion</span>
+          </h4>
+          <p class="text-xs text-gray-400">
+            $1.15M Phase II target to build flight-ready, radiation-hardened 8-blade thermal louver modules for commercial lunar payload services (CLPS) landers and pressurized rovers.
+          </p>
+        </div>
+
+        <div class="bg-[#070b16] rounded-xl border border-gray-800 p-4 space-y-2">
+          <h4 class="text-xs font-bold text-white uppercase font-mono flex items-center space-x-2">
+            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+            <span>Zero-Parasitic Survival</span>
+          </h4>
+          <p class="text-xs text-gray-400">
+            Piezo actuators only fire for $1.5\text{ seconds}$ during jam events ($&lt; 0.05\text{ Wh}$), preventing habitat survival batteries from draining during the 350-hour lunar night.
+          </p>
+        </div>
+
+        <div class="bg-[#070b16] rounded-xl border border-gray-800 p-4 space-y-2">
+          <h4 class="text-xs font-bold text-white uppercase font-mono flex items-center space-x-2">
+            <i data-lucide="cpu" class="w-4 h-4 text-purple-400"></i>
+            <span>Universal Retrofit</span>
+          </h4>
+          <p class="text-xs text-gray-400">
+            Thin-film sensorized flexure replaces passive bimetal hinge brackets without requiring changes to existing NASA louver blade extrusions or radiator panels.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- TAB 4: COMMERCIAL & NATIONWIDE ARR         -->
+    <!-- ========================================== -->
+    <div id="viewARR" class="hidden space-y-6">
+      
+      <!-- Top ARR Financial Overview Header -->
+      <div class="bg-[#070b16] rounded-xl border border-gray-800 p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div class="space-y-1">
+          <span class="text-xs font-mono uppercase tracking-widest text-cyan-400">Civil & Commercial Dual-Use Market Vector</span>
+          <h2 class="text-2xl font-bold text-white">Commercialized Cryogenic & Valve Auditor Market</h2>
+          <p class="text-xs text-gray-400 max-w-xl">
+            Transitioning space-proven $(T, F)$ strain auditor algorithms into critical terrestrial cryogenic infrastructure, LNG transport, and extreme environment energy assets.
+          </p>
+        </div>
+        <div class="flex items-center space-x-6">
+          <div class="text-right">
+            <div class="text-3xl font-bold text-emerald-400 font-mono">$218.4M</div>
+            <div class="text-[10px] font-mono text-gray-400 uppercase">Mature Nationwide ARR (Year 5)</div>
+          </div>
+          <div class="text-right border-l border-gray-800 pl-6">
+            <div class="text-2xl font-bold text-cyan-300 font-mono">$2.18B</div>
+            <div class="text-[10px] font-mono text-gray-400 uppercase">10x Enterprise Valuation</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ARR Breakdown Table -->
+      <div class="bg-[#070b16] rounded-xl border border-gray-800 overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-800 flex justify-between items-center">
+          <h3 class="text-xs font-bold text-gray-300 uppercase font-mono tracking-wider">
+            Commercial Vertical Revenue Distribution Breakdown
+          </h3>
+          <span class="text-[11px] font-mono text-gray-400">Tier-1 SaaS & Industrial Licensing Model</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs font-mono">
+            <thead class="bg-gray-950/80 text-gray-400 uppercase border-b border-gray-800 text-[10px]">
+              <tr>
+                <th class="py-3 px-4">Market Vertical</th>
+                <th class="py-3 px-4">Target Application</th>
+                <th class="py-3 px-4">Addressable Units</th>
+                <th class="py-3 px-4">License Fee / Unit</th>
+                <th class="py-3 px-4">Penetration</th>
+                <th class="py-3 px-4 text-right">Mature Annual ARR</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-800 text-gray-300">
+              <tr class="hover:bg-gray-900/50">
+                <td class="py-3 px-4 font-bold text-white flex items-center space-x-2">
+                  <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                  <span>LNG & Cryogenic Transport</span>
+                </td>
+                <td class="py-3 px-4 text-gray-400">Cryo boil-off relief valves & safety seals</td>
+                <td class="py-3 px-4">42,000 valves</td>
+                <td class="py-3 px-4">$1,850 / yr</td>
+                <td class="py-3 px-4 text-cyan-400">32%</td>
+                <td class="py-3 px-4 text-right font-bold text-emerald-400">$24.8M</td>
+              </tr>
+              <tr class="hover:bg-gray-900/50">
+                <td class="py-3 px-4 font-bold text-white flex items-center space-x-2">
+                  <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+                  <span>Commercial Space Stations</span>
+                </td>
+                <td class="py-3 px-4 text-gray-400">Orbital habitat radiator loops & docking valves</td>
+                <td class="py-3 px-4">1,850 panels</td>
+                <td class="py-3 px-4">$18,500 / yr</td>
+                <td class="py-3 px-4 text-cyan-400">65%</td>
+                <td class="py-3 px-4 text-right font-bold text-emerald-400">$22.2M</td>
+              </tr>
+              <tr class="hover:bg-gray-900/50">
+                <td class="py-3 px-4 font-bold text-white flex items-center space-x-2">
+                  <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+                  <span>Semiconductor Cleanroom Fab</span>
+                </td>
+                <td class="py-3 px-4 text-gray-400">EUV vacuum load-lock particulate auditor</td>
+                <td class="py-3 px-4">14,500 gates</td>
+                <td class="py-3 px-4">$4,200 / yr</td>
+                <td class="py-3 px-4 text-cyan-400">48%</td>
+                <td class="py-3 px-4 text-right font-bold text-emerald-400">$29.2M</td>
+              </tr>
+              <tr class="hover:bg-gray-900/50">
+                <td class="py-3 px-4 font-bold text-white flex items-center space-x-2">
+                  <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                  <span>Arctic Energy Turbines</span>
+                </td>
+                <td class="py-3 px-4 text-gray-400">Sub-zero intake thermal anti-ice louvers</td>
+                <td class="py-3 px-4">38,000 systems</td>
+                <td class="py-3 px-4">$2,100 / yr</td>
+                <td class="py-3 px-4 text-cyan-400">40%</td>
+                <td class="py-3 px-4 text-right font-bold text-emerald-400">$31.9M</td>
+              </tr>
+              <tr class="hover:bg-gray-900/50">
+                <td class="py-3 px-4 font-bold text-white flex items-center space-x-2">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                  <span>Liquid Hydrogen Infrastructure</span>
+                </td>
+                <td class="py-3 px-4 text-gray-400">Heavy-vehicle $20\text{ K}$ cryogenic fueling nozzles</td>
+                <td class="py-3 px-4">65,000 stations</td>
+                <td class="py-3 px-4">$1,600 / yr</td>
+                <td class="py-3 px-4 text-cyan-400">55%</td>
+                <td class="py-3 px-4 text-right font-bold text-emerald-400">$57.2M</td>
+              </tr>
+              <tr class="hover:bg-gray-900/50">
+                <td class="py-3 px-4 font-bold text-white flex items-center space-x-2">
+                  <span class="w-2 h-2 rounded-full bg-rose-400"></span>
+                  <span>Supercritical Geothermal</span>
+                </td>
+                <td class="py-3 px-4 text-gray-400">Downhole mineral scaling valve auditors</td>
+                <td class="py-3 px-4">22,000 wells</td>
+                <td class="py-3 px-4">$4,800 / yr</td>
+                <td class="py-3 px-4 text-cyan-400">50%</td>
+                <td class="py-3 px-4 text-right font-bold text-emerald-400">$52.8M</td>
+              </tr>
+            </tbody>
+            <tfoot class="bg-gray-950 font-bold text-white border-t border-gray-800">
+              <tr>
+                <td colspan="5" class="py-3.5 px-4 uppercase text-right tracking-wider">Total Addressable Commercial Pipeline</td>
+                <td class="py-3.5 px-4 text-right text-emerald-400 text-sm">$218.4M / yr</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- Deep Dive Vertical Cards: Physics + Plain English Contrast -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        
+        <!-- Deep Dive 1 -->
+        <div class="bg-[#070b16] rounded-xl border border-gray-800 p-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold text-cyan-400 uppercase">LNG & Cryo Transport</span>
+            <span class="text-xs font-mono text-emerald-400 font-bold">$24.8M ARR</span>
+          </div>
+          <div class="text-xs space-y-2">
+            <p class="text-gray-300">
+              <strong class="text-white">Physics in 1 Sentence:</strong> Mechanical strain divergence detects ice-crystal freezing in boil-off relief ports prior to catastrophic hull over-pressurization.
+            </p>
+            <p class="text-gray-400">
+              <strong class="text-amber-300">Why Others Missed This:</strong> Legacy marine operators rely on periodic manual inspections or pressure spikes that only alert operators after the valve has already frozen shut.
+            </p>
+          </div>
+        </div>
+
+        <!-- Deep Dive 2 -->
+        <div class="bg-[#070b16] rounded-xl border border-gray-800 p-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold text-blue-400 uppercase">Commercial Space Stations</span>
+            <span class="text-xs font-mono text-emerald-400 font-bold">$22.2M ARR</span>
+          </div>
+          <div class="text-xs space-y-2">
+            <p class="text-gray-300">
+              <strong class="text-white">Physics in 1 Sentence:</strong> Real-time $(T, F)$ phase tracking identifies thruster plume soot binding in orbital heat rejection louvers without spacewalk maintenance.
+            </p>
+            <p class="text-gray-400">
+              <strong class="text-amber-300">Why Others Missed This:</strong> Incumbents use bulky, motorized electric actuators that draw scarce kilowatts and require active flight computer telemetry loops.
+            </p>
+          </div>
+        </div>
+
+        <!-- Deep Dive 3 -->
+        <div class="bg-[#070b16] rounded-xl border border-gray-800 p-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold text-purple-400 uppercase">Semiconductor Cleanrooms</span>
+            <span class="text-xs font-mono text-emerald-400 font-bold">$29.2M ARR</span>
+          </div>
+          <div class="text-xs space-y-2">
+            <p class="text-gray-300">
+              <strong class="text-white">Physics in 1 Sentence:</strong> Nanometer mechanical seal deviations audited by strain signatures identify silica flake entrapment in EUV lithography load-locks.
+            </p>
+            <p class="text-gray-400">
+              <strong class="text-amber-300">Why Others Missed This:</strong> Fabs wait for vacuum pump differential pressure alarms, by which time thousands of wafer dies have suffered particulate fallout contamination.
+            </p>
+          </div>
+        </div>
+
+        <!-- Deep Dive 4 -->
+        <div class="bg-[#070b16] rounded-xl border border-gray-800 p-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold text-amber-400 uppercase">Arctic Energy Turbines</span>
+            <span class="text-xs font-mono text-emerald-400 font-bold">$31.9M ARR</span>
+          </div>
+          <div class="text-xs space-y-2">
+            <p class="text-gray-300">
+              <strong class="text-white">Physics in 1 Sentence:</strong> Hysteretic strain stiffness differentiates between rime ice accretion and mechanical spring fatigue on intake heating louvers.
+            </p>
+            <p class="text-gray-400">
+              <strong class="text-amber-300">Why Others Missed This:</strong> Turbines run continuous high-wattage heating coils all winter, wasting megawatt-hours instead of triggering targeted ultrasonic acoustic pulses.
+            </p>
+          </div>
+        </div>
+
+        <!-- Deep Dive 5 -->
+        <div class="bg-[#070b16] rounded-xl border border-gray-800 p-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold text-emerald-400 uppercase">Liquid Hydrogen Fueling</span>
+            <span class="text-xs font-mono text-emerald-400 font-bold">$57.2M ARR</span>
+          </div>
+          <div class="text-xs space-y-2">
+            <p class="text-gray-300">
+              <strong class="text-white">Physics in 1 Sentence:</strong> Autonomous strain-force auditing confirms cryogenic seal seating at $20\text{ K}$ before liquid hydrogen flow begins, eliminating flaring hazards.
+            </p>
+            <p class="text-gray-400">
+              <strong class="text-amber-300">Why Others Missed This:</strong> Heavy fueling relies on manual torque wrenches and optical indicators that frost over immediately in atmospheric humidity.
+            </p>
+          </div>
+        </div>
+
+        <!-- Deep Dive 6 -->
+        <div class="bg-[#070b16] rounded-xl border border-gray-800 p-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold text-rose-400 uppercase">Supercritical Geothermal</span>
+            <span class="text-xs font-mono text-emerald-400 font-bold">$52.8M ARR</span>
+          </div>
+          <div class="text-xs space-y-2">
+            <p class="text-gray-300">
+              <strong class="text-white">Physics in 1 Sentence:</strong> Inverse stiffness observers pinpoint silica mineral scale binding in downhole throttle valves before irreversible seizure.
+            </p>
+            <p class="text-gray-400">
+              <strong class="text-amber-300">Why Others Missed This:</strong> Operators rely on acid wash schedules after flow rates degrade, costing millions in rig downtime and chemical disposal.
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Executive Investor Thesis Callout -->
+      <div class="bg-gradient-to-r from-gray-900 via-[#070d1e] to-gray-900 rounded-xl border border-cyan-500/30 p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="space-y-2 max-w-3xl">
+          <span class="text-xs font-mono uppercase tracking-widest text-cyan-400 font-bold">Executive Value Proposition</span>
+          <p class="text-sm text-gray-200 leading-relaxed">
+            "ThermSwitch turns passive mechanical valves into intelligent, self-auditing cyber-physical assets. By listening to micro-strain signatures, we eliminate catastrophic valve seizures across space exploration and the global energy transition without the weight, complexity, or power penalties of active motorized actuators."
+          </p>
+          <div class="text-xs text-gray-400 font-mono">
+            Direct Technology Transfer Inquiries & Partnership Licensing:
+          </div>
+        </div>
+        <div class="flex-shrink-0">
+          <a href="mailto:support@rfwavecode.com" class="px-5 py-3 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-mono text-xs font-bold tracking-wider uppercase transition shadow-lg shadow-cyan-900/40 inline-flex items-center space-x-2">
+            <i data-lucide="mail" class="w-4 h-4"></i>
+            <span>support@rfwavecode.com</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Bottom Global Status Footer -->
+  <footer class="border-t border-gray-800/80 bg-[#04060c] py-3 text-[11px] font-mono text-gray-400">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div class="flex items-center space-x-3">
+        <span class="flex items-center space-x-1.5 text-cyan-400 font-bold">
+          <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
+          <span>THERMSWITCH-SYS-CORE v2.4</span>
+        </span>
+        <span>•</span>
+        <span>NASA SBIR H8.01 ALIGNED</span>
+        <span>•</span>
+        <span>UCF CATER PARTNERSHIP</span>
+      </div>
+      <div class="flex items-center space-x-4">
+        <span>NOMINAL SAMPLING: 50 Hz</span>
+        <span class="text-gray-400">|</span>
+        <span class="text-emerald-400">PASSIVE THERMAL SEAL VERIFIED</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ======================================================== -->
+  <!-- JAVASCRIPT ENGINE: PHYSICS SIM, OBSERVER & CHARTS       -->
+  <!-- ======================================================== -->
+  <script>
+    // Tab switching mapping dictionary (Zero bug mandate)
+    const tabMapping = {
+      'sim': { viewId: 'viewSim', btnId: 'tabBtnSim' },
+      'physics': { viewId: 'viewPhysics', btnId: 'tabBtnPhysics' },
+      'proposal': { viewId: 'viewProposal', btnId: 'tabBtnProposal' },
+      'arr': { viewId: 'viewARR', btnId: 'tabBtnARR' }
+    };
+
+    function switchTab(activeKey) {
+      Object.keys(tabMapping).forEach(key => {
+        const item = tabMapping[key];
+        const viewEl = document.getElementById(item.viewId);
+        const btnEl = document.getElementById(item.btnId);
+
+        if (key === activeKey) {
+          viewEl.classList.remove('hidden');
+          btnEl.className = "flex items-center space-x-2 px-4 py-2.5 text-xs sm:text-sm font-medium border-b-2 border-cyan-400 text-cyan-300 bg-cyan-950/20 transition-colors whitespace-nowrap";
+        } else {
+          viewEl.classList.add('hidden');
+          btnEl.className = "flex items-center space-x-2 px-4 py-2.5 text-xs sm:text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition-colors whitespace-nowrap";
+        }
+      });
+
+      // Typeset MathJax dynamically
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise();
+      }
+
+      // Re-trigger layout sizing if returning to simulation
+      if (activeKey === 'sim') {
+        setTimeout(() => {
+          resizeCanvas();
+          if (phaseChart) phaseChart.resize();
+          if (heatLossChart) heatLossChart.resize();
+          if (piezoGChart) piezoGChart.resize();
+        }, 50);
+      }
+    }
+
+    // ==========================================
+    // PHYSICAL SYSTEM STATE VARIABLES
+    // ==========================================
+    const sysState = {
+      // Environmental
+      temp: 175.0,        // Current structural temperature in Kelvin
+      targetTemp: 175.0,  // Target from slider
+      gritDensity: 12.0,  // mg/cm²
+      targetGrit: 12.0,   // target from slider
+      
+      // Hardware Kinetics
+      angle: 42.5,        // degrees: 90 = wide open (hot), 0 = closed seal (cold)
+      idealAngle: 42.5,   // expected kinematic angle without friction
+      strainForce: 14.2,  // Thin-film gauge reaction force in Newtons
+      apparentStiffness: 1.82, // N/mm
+      
+      // State Observer Flags
+      isJammed: false,
+      jamSeverity: 0.0,   // 0.0 (free) to 1.0 (frozen bind)
+      bindingPlateauAngle: 0.0,
+      
+      // Piezo Recovery Subsystem
+      piezoActive: false,
+      piezoIntensity: 0.0,
+      piezoCooldown: 0,
+      piezoFreq: 38.5,    // kHz
+      
+      // Automatic Closed-Loop Cycle
+      autoLoop: true,
+      autoPlungeActive: false,
+      plungePhase: 0,     // 0: idle, 1: cooling, 2: warming
+      
+      // Phase Trajectory Buffer
+      trajectory: [],
+      maxTrajectoryPoints: 90,
+      
+      // Time-series history buffers
+      timeTick: 0,
+      heatLossHistory: [],
+      piezoGHistory: [],
+      maxHistory: 30
+    };
+
+    // ==========================================
+    // CANVAS RENDERING ENGINE
+    // ==========================================
+    const canvas = document.getElementById('louverCanvas');
+    const ctx = canvas.getContext('2d');
+    let gritParticles = [];
+
+    // Initialize 60 randomized regolith grit dust particles in the hinge zone
+    for (let i = 0; i < 70; i++) {
+      gritParticles.push({
+        relX: (Math.random() - 0.5) * 60,
+        relY: (Math.random() - 0.5) * 50,
+        size: 1.2 + Math.random() * 2.8,
+        color: Math.random() > 0.4 ? '#d97706' : '#92400e',
+        speedX: 0,
+        speedY: 0,
+        angleOffset: Math.random() * Math.PI * 2
+      });
+    }
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      const w = rect.width || 600;
+      const h = rect.height || 320;
+      
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.resetTransform();
+      ctx.scale(dpr, dpr);
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+
+    function renderLouverCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const width = rect.width || 600;
+      const height = rect.height || 320;
+
+      // Clear space background
+      ctx.fillStyle = '#020408';
+      ctx.fillRect(0, 0, width, height);
+
+      // Draw subtle background vacuum thermal grid
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 1;
+      const step = 25;
+      for (let x = 0; x < width; x += step) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+      }
+      for (let y = 0; y < height; y += step) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+
+      // Draw Habitat Interior Wall & Outer Lunar Space Labels
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(0, height - 28, width, 28);
+      ctx.fillStyle = '#475569';
+      ctx.font = '10px "JetBrains Mono"';
+      ctx.fillText('HABITAT INTERIOR THERMAL CORE (293 K / 1 ATM)', 20, height - 10);
+      ctx.fillText('LUNAR VACUUM SINK (10^-12 TORR)', width - 210, 20);
+
+      // Central Hinge Pivot Coordinates
+      const pivotX = width * 0.38;
+      const pivotY = height * 0.55;
+      const bladeLength = Math.min(width * 0.45, 230);
+      const bladeThickness = 12;
+
+      // Draw Fixed Base & Cryogenic Bracket Mount
+      ctx.save();
+      ctx.fillStyle = '#1e293b';
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.rect(pivotX - 55, pivotY - 20, 55, 40);
+      ctx.fill();
+      ctx.stroke();
+
+      // Bracket mount hatch lines
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 1.5;
+      for (let lx = pivotX - 50; lx < pivotX - 5; lx += 8) {
+        ctx.beginPath();
+        ctx.moveTo(lx, pivotY - 18);
+        ctx.lineTo(lx + 10, pivotY + 18);
+        ctx.stroke();
+      }
+
+      // Draw Compliant Perimeter Thermal Aerogel Seal Stop
+      const sealX = pivotX + bladeLength * 0.85;
+      const sealY = pivotY + 50;
+      ctx.fillStyle = '#065f46';
+      ctx.strokeStyle = '#10b981';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(sealX - 15, sealY - 8, 30, 24, 4);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#6ee7b7';
+      ctx.font = '9px "JetBrains Mono"';
+      ctx.fillText('SEAL STOP', sealX - 22, sealY + 28);
+
+      // Louver Blade Rotation: 0 deg = closed onto seal, ~75 deg = open
+      const rad = (sysState.angle * Math.PI) / 180;
+      const endX = pivotX + bladeLength * Math.cos(rad);
+      const endY = pivotY - bladeLength * Math.sin(rad);
+
+      // Thermal Radiative Emissive Arrows if Open
+      if (sysState.angle > 10) {
+        const numArrows = 4;
+        for (let a = 1; a <= numArrows; a++) {
+          const frac = a / (numArrows + 1);
+          const ax = pivotX + bladeLength * frac * Math.cos(rad);
+          const ay = pivotY - bladeLength * frac * Math.sin(rad);
+          const arrowLen = 15 + sysState.angle * 0.3;
+          
+          ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(ax, ay);
+          ctx.lineTo(ax + arrowLen * 0.3, ay - arrowLen);
+          ctx.stroke();
+        }
+      }
+
+      // Draw Piezo-Acoustic Shockwave Pulses if Active
+      if (sysState.piezoActive) {
+        ctx.save();
+        const pulseCount = 3;
+        for (let p = 1; p <= pulseCount; p++) {
+          const pulseRadius = (Date.now() / 15 + p * 15) % 65;
+          const alpha = 1.0 - pulseRadius / 65;
+          ctx.strokeStyle = `rgba(6, 182, 212, ${alpha})`;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(pivotX, pivotY, pulseRadius, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      // Draw Rotating Louver Arm (Bimetal Composite)
+      ctx.save();
+      ctx.translate(pivotX, pivotY);
+      ctx.rotate(-rad);
+
+      // Layer 1: Invar-36 (Low Expansion Layer - Top)
+      ctx.fillStyle = '#475569'; // Slate invar
+      ctx.fillRect(0, -bladeThickness, bladeLength, bladeThickness / 2);
+
+      // Layer 2: Brass (High Expansion Layer - Bottom)
+      ctx.fillStyle = '#d97706'; // Golden brass
+      ctx.fillRect(0, -bladeThickness / 2, bladeLength, bladeThickness / 2);
+
+      // Thin-Film PZT Piezo & Strain Gauge Patch at Root
+      ctx.fillStyle = sysState.piezoActive ? '#38bdf8' : '#8b5cf6';
+      ctx.strokeStyle = '#c084fc';
+      ctx.lineWidth = 1;
+      ctx.fillRect(8, -bladeThickness - 3, 26, bladeThickness + 6);
+      ctx.strokeRect(8, -bladeThickness - 3, 26, bladeThickness + 6);
+
+      // Blade Edge Outline
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 1.2;
+      ctx.strokeRect(0, -bladeThickness, bladeLength, bladeThickness);
+
+      // Blade Tip Radiator Fin
+      ctx.fillStyle = '#334155';
+      ctx.beginPath();
+      ctx.moveTo(bladeLength, -bladeThickness - 8);
+      ctx.lineTo(bladeLength + 12, -bladeThickness / 2);
+      ctx.lineTo(bladeLength, 8);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.restore();
+
+      // Draw Central Circular Pivot Knuckle
+      ctx.fillStyle = '#0f172a';
+      ctx.strokeStyle = sysState.isJammed ? '#f43f5e' : '#38bdf8';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(pivotX, pivotY, 14, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Inner bearing pin
+      ctx.fillStyle = '#64748b';
+      ctx.beginPath();
+      ctx.arc(pivotX, pivotY, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Draw Regolith Dust Grit Particles in the Hinge Clearance Gap
+      const dustDensityFrac = Math.min(1.0, sysState.gritDensity / 60);
+      const activeParticles = Math.floor(gritParticles.length * dustDensityFrac);
+
+      for (let i = 0; i < activeParticles; i++) {
+        const p = gritParticles[i];
+        
+        // If piezo is active, violently scatter grit away from the pivot
+        if (sysState.piezoActive) {
+          p.speedX += (Math.random() - 0.5) * 3;
+          p.speedY += (Math.random() - 0.5) * 3;
+        } else {
+          // Particles tend to settle into hinge gap
+          p.speedX *= 0.85;
+          p.speedY *= 0.85;
+        }
+
+        const px = pivotX + p.relX + p.speedX;
+        const py = pivotY + p.relY + p.speedY;
+
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(px, py, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.restore();
+    }
+
+    // ==========================================
+    // CHART.JS INITIALIZATION
+    // ==========================================
+    let phaseChart = null;
+    let heatLossChart = null;
+    let piezoGChart = null;
+
+    function initCharts() {
+      // 1. Diagnostic Phase Space (T vs F)
+      const ctxPhase = document.getElementById('phaseSpaceChart').getContext('2d');
+      
+      // Compute theoretical nominal corridor points from 80K to 380K
+      const nominalPoints = [];
+      const hazardPoints = [];
+      for (let t = 80; t <= 380; t += 10) {
+        // Ideal free contraction follows parabolic curve
+        // At cold temps (80K), force reaches ~22N on seal. At 380K, force drops to ~1.2N
+        const fNom = 1.2 + 21.0 * Math.pow((380 - t) / 300, 1.4);
+        nominalPoints.push({ x: t, y: fNom });
+        
+        // Hazard threshold corridor (elevated reaction force due to grit binding)
+        const fHazard = fNom + (t < 280 ? 4.5 + (280 - t) * 0.025 : 3.0);
+        hazardPoints.push({ x: t, y: fHazard });
+      }
+
+      phaseChart = new Chart(ctxPhase, {
+        type: 'scatter',
+        data: {
+          datasets: [
+            {
+              label: 'Hazard / Jamming Zone',
+              data: hazardPoints,
+              showLine: true,
+              borderColor: 'rgba(244, 63, 94, 0.7)',
+              borderWidth: 1.5,
+              borderDash: [5, 4],
+              pointRadius: 0,
+              fill: 'start',
+              backgroundColor: 'rgba(244, 63, 94, 0.08)'
+            },
+            {
+              label: 'Nominal Timoshenko Baseline',
+              data: nominalPoints,
+              showLine: true,
+              borderColor: '#06b6d4',
+              borderWidth: 2,
+              pointRadius: 0,
+              fill: false
+            },
+            {
+              label: 'Live Trajectory Trace',
+              data: [],
+              showLine: true,
+              borderColor: 'rgba(168, 85, 247, 0.8)',
+              borderWidth: 2,
+              pointRadius: 2,
+              pointBackgroundColor: '#c084fc',
+              fill: false
+            },
+            {
+              label: 'Current Operating State',
+              data: [{ x: sysState.temp, y: sysState.strainForce }],
+              pointRadius: 7,
+              pointBackgroundColor: '#f59e0b',
+              pointBorderColor: '#ffffff',
+              pointBorderWidth: 2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          plugins: {
+            legend: {
+              display: true,
+              labels: {
+                color: '#94a3b8',
+                font: { family: 'JetBrains Mono', size: 10 },
+                boxWidth: 12
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `T: ${ctx.parsed.x.toFixed(1)} K | F: ${ctx.parsed.y.toFixed(2)} N`
+              }
+            }
+          },
+          scales: {
+            x: {
+              type: 'linear',
+              min: 70,
+              max: 390,
+              title: {
+                display: true,
+                text: 'Structural Temperature T (Kelvin)',
+                color: '#64748b',
+                font: { family: 'JetBrains Mono', size: 10 }
+              },
+              grid: { color: '#1e293b' },
+              ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } }
+            },
+            y: {
+              type: 'linear',
+              min: 0,
+              max: 32,
+              title: {
+                display: true,
+                text: 'Strain Gauge Reaction Force F (Newtons)',
+                color: '#64748b',
+                font: { family: 'JetBrains Mono', size: 10 }
+              },
+              grid: { color: '#1e293b' },
+              ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } }
+            }
+          }
+        }
+      });
+
+      // 2. Heat Loss Telemetry Chart
+      const ctxHeat = document.getElementById('heatLossChart').getContext('2d');
+      heatLossChart = new Chart(ctxHeat, {
+        type: 'line',
+        data: {
+          labels: Array(sysState.maxHistory).fill(''),
+          datasets: [
+            {
+              label: 'Parasitic Heat Radiated (W)',
+              data: Array(sysState.maxHistory).fill(38),
+              borderColor: '#38bdf8',
+              backgroundColor: 'rgba(56, 189, 248, 0.1)',
+              borderWidth: 2,
+              pointRadius: 0,
+              fill: true,
+              tension: 0.3
+            },
+            {
+              label: 'Allowable Budget Max (85 W)',
+              data: Array(sysState.maxHistory).fill(85),
+              borderColor: 'rgba(239, 68, 68, 0.8)',
+              borderWidth: 1.5,
+              borderDash: [4, 4],
+              pointRadius: 0,
+              fill: false
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { display: false },
+            y: {
+              min: 0,
+              max: 320,
+              grid: { color: '#1e293b' },
+              ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 9 } }
+            }
+          }
+        }
+      });
+
+      // 3. Piezo Acoustic G Chart
+      const ctxG = document.getElementById('piezoGChart').getContext('2d');
+      piezoGChart = new Chart(ctxG, {
+        type: 'line',
+        data: {
+          labels: Array(sysState.maxHistory).fill(''),
+          datasets: [
+            {
+              label: 'Acoustic RMS Acceleration (g)',
+              data: Array(sysState.maxHistory).fill(0),
+              borderColor: '#a855f7',
+              backgroundColor: 'rgba(168, 85, 247, 0.15)',
+              borderWidth: 2,
+              pointRadius: 0,
+              fill: true,
+              tension: 0.2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { display: false },
+            y: {
+              min: 0,
+              max: 180,
+              grid: { color: '#1e293b' },
+              ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 9 } }
+            }
+          }
+        }
+      });
+    }
+
+    function clearPhaseTrajectory() {
+      sysState.trajectory = [];
+      if (phaseChart) {
+        phaseChart.data.datasets[2].data = [];
+        phaseChart.update();
+      }
+    }
+
+    // ==========================================
+    // KINEMATICS, OBSERVER & PHYSICS STEP
+    // ==========================================
+    function updatePhysics() {
+      // 1. Smoothly interpolate current temp toward slider target
+      const tempDiff = sysState.targetTemp - sysState.temp;
+      sysState.temp += tempDiff * 0.12;
+
+      // 2. Smoothly interpolate grit toward target
+      const gritDiff = sysState.targetGrit - sysState.gritDensity;
+      sysState.gritDensity += gritDiff * 0.2;
+
+      // 3. Ideal kinematic closing angle calculation:
+      // At 380 K -> ~72 deg (Open, radiating excess solar heat)
+      // At 80 K  -> 0.0 deg (Closed firmly against aerogel seal)
+      const normalizedT = Math.max(0, Math.min(1, (sysState.temp - 80) / (380 - 80)));
+      sysState.idealAngle = Math.pow(normalizedT, 1.25) * 72.0;
+
+      // 4. Jamming Friction Mechanics
+      // Binding occurs when grit density is high AND temperature is trying to close the louver
+      const bindingThresholdGrit = 38.0; // mg/cm²
+      if (sysState.gritDensity > bindingThresholdGrit && !sysState.piezoActive) {
+        if (!sysState.isJammed) {
+          // If entering jam condition while closing
+          if (sysState.angle > 12.0) {
+            sysState.isJammed = true;
+            sysState.bindingPlateauAngle = sysState.angle;
+          }
+        }
+      }
+
+      // If jammed, blade motion freezes at plateau angle while force piles up
+      if (sysState.isJammed && !sysState.piezoActive) {
+        // Blade resists motion; small elasticity
+        const lag = sysState.angle - sysState.idealAngle;
+        sysState.angle = sysState.bindingPlateauAngle - (sysState.bindingPlateauAngle - sysState.idealAngle) * 0.05;
+        
+        // Strain gauge force diverges: Bimetallic material continues contracting against stuck hinge!
+        const thermalDeficit = Math.max(0, sysState.bindingPlateauAngle - sysState.idealAngle);
+        const nominalForce = 1.2 + 21.0 * Math.pow((380 - sysState.temp) / 300, 1.4);
+        const frictionReaction = thermalDeficit * 0.42 * (sysState.gritDensity / 30);
+        
+        sysState.strainForce = nominalForce + frictionReaction;
+        sysState.apparentStiffness = 1.75 + (frictionReaction * 0.38);
+      } else {
+        // Nominal or recovering motion
+        const angleDiff = sysState.idealAngle - sysState.angle;
+        sysState.angle += angleDiff * 0.18;
+        
+        // Nominal strain force calculation
+        sysState.strainForce = 1.2 + 21.0 * Math.pow((380 - sysState.temp) / 300, 1.4);
+        sysState.apparentStiffness = 1.75 + (Math.random() - 0.5) * 0.04;
+      }
+
+      // 5. Piezo Ultrasonic Dislodgement Cooldown / Effect
+      if (sysState.piezoActive) {
+        sysState.piezoCooldown--;
+        // Fluidize dust: grit density drops locally in the knuckle
+        sysState.gritDensity = Math.max(0, sysState.gritDensity - 1.8);
+        sysState.targetGrit = sysState.gritDensity;
+        document.getElementById('sliderGrit').value = Math.round(sysState.gritDensity);
+        document.getElementById('sliderGritLabel').textContent = `${Math.round(sysState.gritDensity)} mg/cm²`;
+
+        // Louver frees itself
+        if (sysState.piezoCooldown <= 0) {
+          sysState.piezoActive = false;
+          sysState.isJammed = false;
+          sysState.piezoIntensity = 0.0;
+        }
+      }
+
+      // 6. Closed-Loop Autonomous Auditor Logic
+      // Check if strain force deviates from nominal by more than 3.5 N AND angle lag > 5 deg
+      const nominalExpectedForce = 1.2 + 21.0 * Math.pow((380 - sysState.temp) / 300, 1.4);
+      const forceDelta = Math.max(0, sysState.strainForce - nominalExpectedForce);
+      const angleLag = Math.abs(sysState.angle - sysState.idealAngle);
+
+      const auditorEnabled = document.getElementById('autoLoopToggle').checked;
+      if (auditorEnabled && sysState.isJammed && forceDelta > 2.8 && !sysState.piezoActive) {
+        // Trigger automated piezo recovery
+        triggerPiezoDislodge(true);
+      }
+
+      // 7. Update Phase Trajectory
+      sysState.trajectory.push({ x: sysState.temp, y: sysState.strainForce });
+      if (sysState.trajectory.length > sysState.maxTrajectoryPoints) {
+        sysState.trajectory.shift();
+      }
+
+      // 8. Habitat Thermal Leakage Computation
+      // Emissivity = open area ratio; when open at 80K, radiation into deep space is catastrophic!
+      const openFraction = sysState.angle / 72.0;
+      const tHab = 293.0; // Kelvin
+      const tSpace = sysState.temp; // Radiative sink
+      const sigma = 5.67e-8;
+      const radArea = 0.45; // m²
+      const radHeatFlux = sigma * radArea * (Math.pow(tHab, 4) - Math.pow(tSpace, 4)) * (0.05 + 0.95 * openFraction);
+      const heatLossWatts = Math.max(5, Math.min(480, radHeatFlux * 0.45));
+
+      // Piezo acceleration profile
+      const currentPiezoG = sysState.piezoActive ? 142.5 * (0.8 + Math.random() * 0.4) : 0;
+
+      // Update telemetry history buffers
+      sysState.timeTick++;
+      if (sysState.timeTick % 3 === 0) {
+        sysState.heatLossHistory.push(heatLossWatts);
+        if (sysState.heatLossHistory.length > sysState.maxHistory) sysState.heatLossHistory.shift();
+
+        sysState.piezoGHistory.push(currentPiezoG);
+        if (sysState.piezoGHistory.length > sysState.maxHistory) sysState.piezoGHistory.shift();
+
+        // Update auxiliary charts
+        if (heatLossChart) {
+          heatLossChart.data.datasets[0].data = [...sysState.heatLossHistory];
+          heatLossChart.update('none');
+        }
+        if (piezoGChart) {
+          piezoGChart.data.datasets[0].data = [...sysState.piezoGHistory];
+          piezoGChart.update('none');
+        }
+      }
+
+      // 9. Update Phase Space Scatter Chart
+      if (phaseChart && sysState.timeTick % 2 === 0) {
+        phaseChart.data.datasets[2].data = sysState.trajectory;
+        phaseChart.data.datasets[3].data = [{ x: sysState.temp, y: sysState.strainForce }];
+        phaseChart.update('none');
+      }
+
+      // 10. Update DOM Readouts & Telemetry Badges
+      updateTelemetryUI(forceDelta, angleLag, heatLossWatts);
+    }
+
+    function updateTelemetryUI(forceDelta, angleLag, heatLossWatts) {
+      // Numerical UI elements
+      document.getElementById('canvasTempDisplay').textContent = `${sysState.temp.toFixed(1)} K`;
+      document.getElementById('canvasAngleDisplay').textContent = `${sysState.angle.toFixed(1)}° (${sysState.angle < 5 ? 'Sealed' : sysState.angle < 30 ? 'Partly Closed' : 'Open'})`;
+      document.getElementById('canvasForceDisplay').textContent = `${sysState.strainForce.toFixed(1)} N`;
+      
+      const heatRetentionPct = Math.max(0, Math.min(100, 100 - (heatLossWatts / 320) * 100));
+      document.getElementById('canvasHeatRetention').textContent = `${heatRetentionPct.toFixed(1)}%`;
+
+      document.getElementById('valKeff').textContent = `${sysState.apparentStiffness.toFixed(2)} N/mm`;
+      document.getElementById('valThetaLag').textContent = `${angleLag.toFixed(1)}°`;
+      document.getElementById('valFbind').textContent = `${forceDelta.toFixed(1)} N`;
+      document.getElementById('valHeatLossRate').textContent = `${heatLossWatts.toFixed(0)} W (${heatLossWatts < 85 ? 'Safe' : 'CRITICAL LEAK'})`;
+
+      // Header Env state
+      let envLabel = "DAYLIGHT (300K+)";
+      if (sysState.temp < 110) envLabel = `DEEP LUNAR NIGHT (${sysState.temp.toFixed(0)} K)`;
+      else if (sysState.temp < 220) envLabel = `PENUMBRA SINK (${sysState.temp.toFixed(0)} K)`;
+      document.getElementById('headerEnvState').textContent = envLabel;
+
+      // Observer diagnosis text & alerts
+      const alarmBadge = document.getElementById('headerAlarmBadge');
+      const alarmText = document.getElementById('headerAlarmText');
+      const jamAlertOverlay = document.getElementById('canvasJamAlert');
+      const observerDiagnosis = document.getElementById('observerDiagnosis');
+      const auditRec = document.getElementById('auditRecommendation');
+
+      if (sysState.piezoActive) {
+        alarmBadge.className = "flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-purple-950/80 border border-purple-500/80 text-purple-300 text-xs font-mono animate-pulse";
+        alarmText.textContent = "ULTRASONIC FLUIDIZATION ACTIVE";
+        jamAlertOverlay.classList.remove('hidden');
+        jamAlertOverlay.innerHTML = '<i data-lucide="zap" class="w-4 h-4 text-cyan-300"></i><span>ACOUSTIC SHAKER DISLODGING GRIT</span>';
+        observerDiagnosis.textContent = "PIEZO_ACOUSTIC_RECOVERY_MODE";
+        observerDiagnosis.className = "text-purple-400 font-bold";
+        auditRec.textContent = "38.5 kHz shear waves disrupting regolith contact force chains. Dislodgement in progress.";
+      } else if (sysState.isJammed) {
+        alarmBadge.className = "flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-rose-950/90 border border-rose-500 text-rose-300 text-xs font-mono animate-pulse";
+        alarmText.textContent = "HAZARD: REGOLITH BINDING DETECTED";
+        jamAlertOverlay.classList.remove('hidden');
+        jamAlertOverlay.innerHTML = '<i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400"></i><span>REGOLITH BINDING DETECTED</span>';
+        observerDiagnosis.textContent = "KINEMATIC_PLATEAU_FORCE_DIVERGENCE";
+        observerDiagnosis.className = "text-rose-400 font-bold";
+        auditRec.textContent = "Mechanical displacement halted despite cryogenic thermal gradient. Piezo pulse recommended to avoid habitat freezing.";
+      } else {
+        alarmBadge.className = "flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-gray-900/80 border border-emerald-500/40 text-emerald-400 text-xs font-mono";
+        alarmText.textContent = "HEALTHY: UNBOUND";
+        jamAlertOverlay.classList.add('hidden');
+        observerDiagnosis.textContent = "NOMINAL_THERMO_ELASTIC";
+        observerDiagnosis.className = "text-emerald-400 font-bold";
+        auditRec.textContent = "System tracking nominal bimetal hysteretic curve. Continuous heat-trap closure verified.";
+      }
+
+      // Piezo Energy Bar
+      const piezoBar = document.getElementById('piezoEnergyBar');
+      const piezoVal = document.getElementById('piezoEnergyBarVal');
+      const piezoPill = document.getElementById('piezoStatusPill');
+
+      if (sysState.piezoActive) {
+        piezoBar.style.width = '100%';
+        piezoBar.className = "bg-cyan-400 h-full transition-all duration-150 animate-pulse";
+        piezoVal.textContent = "100% (38.5 kHz Resonance)";
+        piezoPill.textContent = "PIEZO: 38.5 kHz RESONANCE (140g)";
+        piezoPill.className = "text-[11px] font-mono px-2 py-0.5 rounded bg-cyan-950 border border-cyan-500 text-cyan-300 animate-pulse";
+      } else {
+        piezoBar.style.width = '0%';
+        piezoBar.className = "bg-cyan-500 h-full transition-all duration-300";
+        piezoVal.textContent = "0% PWM";
+        piezoPill.textContent = "PIEZO: IDLE (0 kHz)";
+        piezoPill.className = "text-[11px] font-mono px-2 py-0.5 rounded bg-gray-900 border border-gray-700 text-gray-400";
+      }
+
+      // Re-trigger icon initialization if elements updated
+      lucide.createIcons();
+    }
+
+    // ==========================================
+    // USER INTERACTION HANDLERS
+    // ==========================================
+    const sliderTemp = document.getElementById('sliderTemp');
+    sliderTemp.addEventListener('input', (e) => {
+      sysState.targetTemp = parseFloat(e.target.value);
+      document.getElementById('sliderTempLabel').textContent = `${Math.round(sysState.targetTemp)} K (${Math.round(sysState.targetTemp - 273.15)}°C)`;
+    });
+
+    const sliderGrit = document.getElementById('sliderGrit');
+    sliderGrit.addEventListener('input', (e) => {
+      sysState.targetGrit = parseFloat(e.target.value);
+      document.getElementById('sliderGritLabel').textContent = `${Math.round(sysState.targetGrit)} mg/cm²`;
+    });
+
+    function injectGritAnomaly() {
+      sysState.targetGrit = 65.0;
+      sysState.gritDensity = 65.0;
+      sliderGrit.value = 65;
+      document.getElementById('sliderGritLabel').textContent = "65 mg/cm² (Binding Threshold)";
+      
+      // If we are currently warm, induce a cold plunge to demonstrate binding
+      if (sysState.temp > 190) {
+        sysState.targetTemp = 95.0;
+        sliderTemp.value = 95;
+        document.getElementById('sliderTempLabel').textContent = "95 K (-178°C)";
+      }
+    }
+
+    function triggerPiezoDislodge(isAuto = false) {
+      sysState.piezoActive = true;
+      sysState.piezoCooldown = 28; // ~1.2 seconds of animation
+      sysState.piezoIntensity = 1.0;
+    }
+
+    function resetSystemNominal() {
+      sysState.targetTemp = 175.0;
+      sysState.temp = 175.0;
+      sysState.targetGrit = 10.0;
+      sysState.gritDensity = 10.0;
+      sysState.isJammed = false;
+      sysState.piezoActive = false;
+      
+      sliderTemp.value = 175;
+      sliderGrit.value = 10;
+      document.getElementById('sliderTempLabel').textContent = "175 K (-98°C)";
+      document.getElementById('sliderGritLabel').textContent = "10 mg/cm² (Nominal Dust)";
+      clearPhaseTrajectory();
+    }
+
+    // Automated 350-hour Lunar Night Plunge Simulation
+    let plungeInterval = null;
+    function simulateFullLunarNight() {
+      if (plungeInterval) clearInterval(plungeInterval);
+      
+      // Start at Lunar Sunset (270K) and plunge to Midnight (85K)
+      sysState.temp = 280.0;
+      sysState.targetTemp = 85.0;
+      sliderTemp.value = 85;
+      document.getElementById('sliderTempLabel').textContent = "85 K (-188°C)";
+
+      // Inject modest dust that triggers binding midway
+      sysState.targetGrit = 50.0;
+      sliderGrit.value = 50;
+      document.getElementById('sliderGritLabel').textContent = "50 mg/cm²";
+    }
+
+    // ==========================================
+    // MAIN ANIMATION & SIMULATION LOOP
+    // ==========================================
+    function mainLoop() {
+      updatePhysics();
+      renderLouverCanvas();
+      requestAnimationFrame(mainLoop);
+    }
+
+    // Initialize application on window load
+    window.onload = function() {
+      resizeCanvas();
+      initCharts();
+      lucide.createIcons();
+      mainLoop();
+    };
+  </script>
+</body>
+</html>
